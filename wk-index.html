@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>WalkWahr</title>
+<meta name="description" content="WalkWahr – Strecken zu Fuß, mit dem Rad oder Auto manuell tracken, mit Wetter und Verlauf. Alles lokal auf deinem Gerät.">
+<meta name="theme-color" content="#1B2340">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="wk-icon-180.png">
+<link rel="icon" href="wk-icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="WalkWahr">
+<link rel="stylesheet" href="wk-style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ TOPBAR (immer sichtbar) ============ -->
+  <header class="topbar">
+    <button class="iconbtn back" id="btnBack" hidden aria-label="Zurück">←</button>
+    <h1 id="pageTitle"><img src="wk-icon-title.png" alt="" class="titleicon">WalkWahr</h1>
+    <button class="iconbtn" id="btnTheme" aria-label="Hell/Dunkel">🌓</button>
+  </header>
+
+  <!-- ============ CONTENT: 4 TABS ============ -->
+  <main class="content" id="content">
+
+    <!-- ---- TAB: START ---- -->
+    <section class="tabview active" id="tab-start">
+      <div class="hero" id="homeGreeting">
+        <div class="hero-line" id="greetLine">Bereit für die nächste Tour?</div>
+      </div>
+
+      <div class="quicktiles">
+        <button class="qtile" data-tab="history">
+          <span class="qic">🗂️</span><span class="qlbl">Verlauf</span>
+        </button>
+        <button class="qtile" data-tab="stats">
+          <span class="qic">📊</span><span class="qlbl">Statistik</span>
+        </button>
+        <button class="qtile" data-tab="info">
+          <span class="qic">ℹ️</span><span class="qlbl">Info</span>
+        </button>
+      </div>
+
+      <div class="card newtour-card">
+        <strong class="cardtitle">Neue Tour starten</strong>
+        <div class="modeselect" id="sessionSelect">
+          <button class="mode active" data-session="track"><span class="ic">📍</span>Aufzeichnen</button>
+          <button class="mode" data-session="navigate"><span class="ic">🧭</span>Navigation</button>
+        </div>
+        <div class="modeselect navtrackselect" id="navTrackSelect" style="display:none;">
+          <button class="mode active" data-navtrack="yes"><span class="ic">📍</span>Mit Aufzeichnung</button>
+          <button class="mode" data-navtrack="no"><span class="ic">🧭</span>Ohne Aufzeichnung</button>
+        </div>
+        <div class="modeselect" id="modeSelect">
+          <button class="mode active" data-mode="walk"><span class="ic">🚶</span>Gehen</button>
+          <button class="mode" data-mode="bike"><span class="ic">🚴</span>Rad</button>
+          <button class="mode" data-mode="car"><span class="ic">🚗</span>Auto</button>
+        </div>
+        <button class="btn btn-primary btn-block" id="btnStartTour">Start</button>
+        <p class="small" id="newtourHint">Modus wählen und auf „Start" tippen. Aufzeichnung startet erst mit diesem Tipp und läuft nur, solange die App geöffnet ist.</p>
+      </div>
+
+      <div class="card weekstrip">
+        <div class="weekstrip-item"><span class="wsval" id="wsDist">0,0 km</span><span class="wslbl">Diese Woche</span></div>
+        <div class="weekstrip-div"></div>
+        <div class="weekstrip-item"><span class="wsval" id="wsCount">0</span><span class="wslbl">Touren</span></div>
+      </div>
+
+    </section>
+
+    <!-- ---- TAB: VERLAUF ---- -->
+    <section class="tabview" id="tab-history">
+      <div class="historytoolbar">
+        <div class="filterrow" id="historyFilters">
+          <button class="filterchip active" data-filter="all">Alle</button>
+          <button class="filterchip" data-filter="walk">🚶 Gehen</button>
+          <button class="filterchip" data-filter="bike">🚴 Rad</button>
+          <button class="filterchip" data-filter="car">🚗 Auto</button>
+          <button class="filterchip" data-filter="fav">★ Favoriten</button>
+        </div>
+        <select class="sortselect" id="historySort">
+          <option value="newest">Neueste zuerst</option>
+          <option value="oldest">Älteste zuerst</option>
+          <option value="longest">Längste zuerst</option>
+          <option value="shortest">Kürzeste zuerst</option>
+        </select>
+      </div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </section>
+
+    <!-- ---- TAB: STATISTIK ---- -->
+    <section class="tabview" id="tab-stats">
+      <div class="filterrow" id="statsFilters">
+        <button class="filterchip active" data-filter="all">Gesamt</button>
+        <button class="filterchip" data-filter="walk">🚶 Gehen</button>
+        <button class="filterchip" data-filter="bike">🚴 Rad</button>
+        <button class="filterchip" data-filter="car">🚗 Auto</button>
+      </div>
+      <div class="statgrid">
+        <div class="statbox"><div class="val" id="statCount">0</div><div class="lbl">Touren</div></div>
+        <div class="statbox"><div class="val" id="statDistanceSum">0,0 km</div><div class="lbl">Gesamtstrecke</div></div>
+        <div class="statbox"><div class="val" id="statTimeSum">0h 0m</div><div class="lbl">Gesamtzeit</div></div>
+        <div class="statbox"><div class="val" id="statAvgAll">0,0 km/h</div><div class="lbl">Ø Tempo</div></div>
+      </div>
+      <div class="card">
+        <strong class="cardtitle">Rekorde</strong>
+        <div class="statgrid" style="margin-top:10px;">
+          <div class="statbox"><div class="val" id="statLongest">–</div><div class="lbl">Längste Tour</div></div>
+          <div class="statbox"><div class="val" id="statFastest">–</div><div class="lbl">Schnellstes Ø-Tempo</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <strong class="cardtitle">Diese Woche</strong>
+        <div class="statgrid" style="margin-top:10px;">
+          <div class="statbox"><div class="val" id="statWeekDist">0,0 km</div><div class="lbl">Strecke</div></div>
+          <div class="statbox"><div class="val" id="statWeekCount">0</div><div class="lbl">Touren</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---- TAB: INFO ---- -->
+    <section class="tabview" id="tab-info">
+      <div class="card">
+        <strong class="cardtitle">Über WalkWahr</strong>
+        <p class="small">Version 10 · Tracking ausschließlich manuell, alle Daten nur lokal auf diesem Gerät.</p>
+      </div>
+
+      <div class="card">
+        <strong class="cardtitle">Erfolge</strong>
+        <div class="badgegrid" id="badgeGrid"></div>
+      </div>
+
+      <div class="card">
+        <strong class="cardtitle">Einstellungen</strong>
+        <div class="togglewrap">
+          <span>Automatische Pause bei Stillstand</span>
+          <button class="btn btn-warm btn-toggle" id="btnToggleAutopause">Aus</button>
+        </div>
+        <p class="small">Erkennt während einer laufenden Tour, wenn du länger stehst, und pausiert Zeit &amp; Strecke automatisch – gestartet und beendet wird eine Tour weiterhin ausschließlich von dir.</p>
+        <div class="togglewrap">
+          <span>Onboarding erneut anzeigen</span>
+          <button class="btn btn-warm" id="btnReplayOnboarding">Anzeigen</button>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+        <strong class="cardtitle">Daten &amp; Sicherung</strong>
+        <p class="small">Alle Touren liegen nur lokal auf diesem Gerät. Sichere sie als Datei, um sie auf dem Telefon abzulegen (z. B. in der Dateien-App) oder auf ein neues Gerät zu übertragen.</p>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-block" id="btnExportBackup">⬇️ Sicherung exportieren</button>
+          <button class="btn btn-outline btn-block" id="btnImportBackup">⬆️ Sicherung importieren</button>
+        </div>
+        <input type="file" id="fileImportBackup" accept="application/json" hidden>
+      </div>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+        <a href="wk-impressum.html">Impressum</a>
+        <a href="wk-datenschutz.html">Datenschutzerklärung</a>
+        <a href="wk-datenschutz.html#lizenzen">Lizenzen &amp; Datenquellen</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ OVERLAY: ONBOARDING ============ -->
+  <div class="overlay" id="ov-onboarding">
+    <div class="overlay-scroll">
+      <div class="card onboard-card">
+        <img src="wk-icon-title.png" alt="" class="onboard-icon">
+        <h2 style="margin:10px 0 0;">Willkommen bei WalkWahr 👋</h2>
+        <p class="small">Tracke deine Wege zu Fuß, mit dem Rad oder Auto – Strecke, Zeit, Tempo und das aktuelle Wetter. Alles bleibt ausschließlich lokal auf deinem Gerät gespeichert.</p>
+        <p class="small"><strong>Wichtig:</strong> Das Tracking startet und endet ausschließlich, wenn du selbst auf „Start" bzw. „Tour beenden" tippst. Es gibt kein automatisches Tracking im Hintergrund.</p>
+        <p class="small">Kartendarstellung über OpenStreetMap, Wetterdaten über Open-Meteo. Beides wird nur bei aktiver Nutzung geladen.</p>
+        <button class="btn btn-primary btn-block" id="btnOnboardingOk">Los geht's</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: LIVE TRACKING ============ -->
+  <div class="overlay overlay-map" id="ov-live">
+    <div class="livemapwrap" id="livemapwrap">
+      <div id="map"></div>
+      <div class="turnalert" id="turnAlert" aria-hidden="true">
+        <div class="turnalert-arrow" id="turnAlertArrow"></div>
+      </div>
+      <button class="mapicon-btn mapexpand" id="btnMapExpand" aria-label="Karte vergrößern">⤢</button>
+      <button class="mapicon-btn mapcollapse" id="btnMapCollapse" aria-label="Karte verkleinern">✕</button>
+    </div>
+    <div class="livesheet">
+      <div class="card navcard" id="navCard" style="display:none;">
+        <div id="navSearchBox">
+          <strong class="cardtitle">Navigation</strong>
+          <p class="small">Straßenroute mit Richtungspfeil, Entfernung, Ankunftszeit und Abbiege-Hinweisen. Ohne Verbindung zeigt der Pfeil stattdessen die Luftlinie zum Ziel.</p>
+          <div id="navFavoritesBox" style="display:none;">
+            <div class="navfavtitle">★ Favoriten</div>
+            <div id="navFavorites" class="navresults"></div>
+            <div class="navsearchdiv"><span>oder</span></div>
+          </div>
+          <div class="navsearchrow">
+            <input type="text" id="navAddressInput" placeholder="Adresse eingeben…">
+            <button class="btn" id="btnNavSearch">Suchen</button>
+          </div>
+          <div id="navResults" class="navresults"></div>
+          <div class="navsearchdiv"><span>oder</span></div>
+          <button class="btn btn-block" id="btnNavPick">📍 Ziel auf der Karte antippen</button>
+          <p class="small" id="navPickHint" style="display:none;">Jetzt auf einen Punkt in der Karte oben tippen, um ihn als Ziel zu setzen.</p>
+        </div>
+        <div id="navActiveBox" class="navactive" style="display:none;">
+          <div class="navactive-row">
+            <div class="navarrowwrap"><div class="navarrow" id="navArrow">➤</div></div>
+            <div class="navinfo">
+              <div class="navdist" id="navDist">– km</div>
+              <div class="navlabel" id="navLabel">Ziel</div>
+              <div class="navapprox" id="navApprox" style="display:none;">≈ ungefähre Lage – keine Hausnummer in den Kartendaten erfasst</div>
+              <div class="navinstruction" id="navInstruction" style="display:none;"></div>
+            </div>
+            <button class="navfavbtn" id="btnNavFav" aria-label="Als Favorit merken">☆</button>
+          </div>
+          <button class="btn btn-primary btn-block" id="btnNavStart" style="display:none;">▶️ Start</button>
+          <button class="linkbtn" id="btnNavCancel">Neues Ziel</button>
+        </div>
+        <p class="small navattrib">Adressdaten: © OpenStreetMap-Mitwirkende (Nominatim) · Routing: © OpenStreetMap-Mitwirkende, berechnet über OSRM (FOSSGIS) · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Kartenfehler melden</a></p>
+      </div>
+      <div class="livebig" id="liveTrackUI">
+        <div class="num" id="liveDistance">0,00</div>
+        <div class="unit">Kilometer · <span id="liveModeLabel">Gehen</span></div>
+      </div>
+      <div class="statgrid" id="liveStatgrid">
+        <div class="statbox"><div class="val" id="liveTime">00:00</div><div class="lbl">Dauer</div></div>
+        <div class="statbox"><div class="val" id="liveSpeed">0,0</div><div class="lbl">Aktuell km/h</div></div>
+        <div class="statbox"><div class="val" id="liveAvg">0,0</div><div class="lbl">Ø km/h</div></div>
+        <div class="statbox"><div class="val" id="liveMax">0,0</div><div class="lbl">Max km/h</div></div>
+      </div>
+      <div class="weatherline" id="liveWeather" style="display:none;"></div>
+      <div class="btn-row" id="liveTrackBtnRow">
+        <button class="btn btn-warm btn-block" id="btnPauseTour">⏸ Pause</button>
+        <button class="btn btn-warm btn-block" id="btnAddNote">📍 Notiz</button>
+      </div>
+      <button class="btn btn-danger btn-block btn-lg" id="btnStopTour">⏹ Tour beenden</button>
+      <div class="small" id="gpsHint"></div>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: NOTE (Modal über Live) ============ -->
+  <div class="overlay overlay-modal" id="ov-note">
+    <div class="overlay-scroll">
+      <div class="card notebox">
+        <strong class="cardtitle">Notiz zum aktuellen Standort</strong>
+        <div style="margin-top:10px;">
+          <input type="text" id="noteTitle" placeholder="Kurztitel (optional)">
+          <textarea id="noteText" placeholder="Was ist hier bemerkenswert?"></textarea>
+        </div>
+        <div style="margin-top:10px;">
+          <input type="file" id="notePhoto" accept="image/*" capture="environment">
+        </div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn btn-outline btn-block" id="btnNoteCancel">Abbrechen</button>
+          <button class="btn btn-primary btn-block" id="btnNoteSave">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: SUMMARY ============ -->
+  <!-- ============ OVERLAY: HINTERGRUND-LÜCKE (Modal über Live) ============ -->
+  <div class="overlay overlay-modal" id="ov-bggap">
+    <div class="overlay-scroll">
+      <div class="card notebox">
+        <strong class="cardtitle">App war im Hintergrund</strong>
+        <p class="small" id="bgGapText">Die Aufzeichnung hat für einige Zeit keine Position erhalten, weil die App im Hintergrund war. Wie soll diese Zeit gewertet werden?</p>
+        <p class="small">Die Strecke in dieser Zeitspanne wird auf der Karte gestrichelt dargestellt, da für diesen Abschnitt keine GPS-Punkte vorliegen.</p>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn btn-outline btn-block" id="btnBgGapActive">Normal zählen</button>
+          <button class="btn btn-primary btn-block" id="btnBgGapPause">Als Pause werten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-summary">
+    <div class="overlay-scroll">
+      <div class="statichmapwrap">
+        <div id="summaryMap"></div>
+        <button class="mapicon-btn mapexpand" aria-label="Karte vergrößern">⤢</button>
+        <button class="mapicon-btn mapcollapse" aria-label="Karte verkleinern">✕</button>
+      </div>
+      <div class="statgrid">
+        <div class="statbox"><div class="val" id="sumDistance">0,00 km</div><div class="lbl">Strecke</div></div>
+        <div class="statbox"><div class="val" id="sumTime">00:00</div><div class="lbl">Dauer</div></div>
+        <div class="statbox"><div class="val" id="sumAvg">0,0 km/h</div><div class="lbl">Ø Tempo</div></div>
+        <div class="statbox"><div class="val" id="sumMax">0,0 km/h</div><div class="lbl">Höchsttempo</div></div>
+      </div>
+      <div class="weatherline" id="sumWeather" style="display:none;"></div>
+      <div class="card" id="sumElevationCard" style="display:none;">
+        <strong class="cardtitle">Höhenprofil</strong>
+        <div id="sumElevationChart" style="margin-top:8px;"></div>
+        <div class="statgrid" style="margin-top:10px;">
+          <div class="statbox"><div class="val" id="sumAscent">–</div><div class="lbl">Anstieg</div></div>
+          <div class="statbox"><div class="val" id="sumDescent">–</div><div class="lbl">Gefälle</div></div>
+        </div>
+        <p class="small">Grobe Schätzung anhand der GPS-Höhenwerte deines Geräts – ohne barometrischen Sensor nicht hochpräzise.</p>
+      </div>
+      <div class="card" id="sumSplitsCard" style="display:none;">
+        <strong class="cardtitle">Kilometer-Splits</strong>
+        <div id="sumSplitsList" class="splitlist"></div>
+        <p class="small">Grobe Schätzung anhand der aufgezeichneten Punkte.</p>
+      </div>
+      <div class="card" id="sumNotesCard" style="display:none;">
+        <strong class="cardtitle">Notizen dieser Tour</strong>
+        <div id="sumNotesList" style="margin-top:8px;display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div class="card notebox">
+        <strong class="cardtitle">Tour speichern?</strong>
+        <div style="margin-top:10px;">
+          <input type="text" id="sumTitle" placeholder="Name der Tour (optional)">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-block" id="btnDiscardTour">Verwerfen</button>
+          <button class="btn btn-primary btn-block" id="btnSaveTour">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: TOUR DETAIL ============ -->
+  <div class="overlay" id="ov-detail">
+    <div class="overlay-scroll">
+      <div class="dettitlerow">
+        <strong class="cardtitle" id="detTitleText">Tour</strong>
+        <button class="linkbtn" id="btnEditTitle">Bearbeiten</button>
+      </div>
+      <div class="statichmapwrap">
+        <div id="detailMap"></div>
+        <button class="mapicon-btn mapfav" id="btnToggleFavorite" aria-label="Favorit">☆</button>
+        <button class="mapicon-btn mapexpand" aria-label="Karte vergrößern">⤢</button>
+        <button class="mapicon-btn mapcollapse" aria-label="Karte verkleinern">✕</button>
+      </div>
+      <div class="statgrid">
+        <div class="statbox"><div class="val" id="detDistance">0,00 km</div><div class="lbl">Strecke</div></div>
+        <div class="statbox"><div class="val" id="detTime">00:00</div><div class="lbl">Dauer</div></div>
+        <div class="statbox"><div class="val" id="detAvg">0,0 km/h</div><div class="lbl">Ø Tempo</div></div>
+        <div class="statbox"><div class="val" id="detMax">0,0 km/h</div><div class="lbl">Höchsttempo</div></div>
+      </div>
+      <div class="weatherline" id="detWeather" style="display:none;"></div>
+      <div class="card" id="detElevationCard" style="display:none;">
+        <strong class="cardtitle">Höhenprofil</strong>
+        <div id="detElevationChart" style="margin-top:8px;"></div>
+        <div class="statgrid" style="margin-top:10px;">
+          <div class="statbox"><div class="val" id="detAscent">–</div><div class="lbl">Anstieg</div></div>
+          <div class="statbox"><div class="val" id="detDescent">–</div><div class="lbl">Gefälle</div></div>
+        </div>
+        <p class="small">Grobe Schätzung anhand der GPS-Höhenwerte deines Geräts – ohne barometrischen Sensor nicht hochpräzise.</p>
+      </div>
+      <div class="card" id="detSplitsCard" style="display:none;">
+        <strong class="cardtitle">Kilometer-Splits</strong>
+        <div id="detSplitsList" class="splitlist"></div>
+        <p class="small">Grobe Schätzung anhand der aufgezeichneten Punkte.</p>
+      </div>
+      <div class="card" id="detNotesCard" style="display:none;">
+        <strong class="cardtitle">Notizen</strong>
+        <div id="detNotesList" style="margin-top:8px;display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <button class="btn btn-outline btn-block" id="btnShareTour">📤 Tour teilen</button>
+      <div class="btn-row">
+        <button class="btn btn-outline btn-block" id="btnExportGpx">🗺️ Als GPX exportieren</button>
+        <button class="btn btn-danger btn-block" id="btnDeleteTour">🗑 Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="undotoast" id="undoToast">
+    <span id="undoToastMsg"></span>
+    <button id="btnUndoDelete">Rückgängig</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="wk-app.js"></script>
+</body>
+</html>

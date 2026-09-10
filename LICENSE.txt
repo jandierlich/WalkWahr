@@ -1,0 +1,49 @@
+WalkWahr – Lizenzen und Datenquellen
+=====================================
+
+Eigener Code (HTML/CSS/JavaScript):
+Copyright (c) 2026 Jan Dierlich
+Nur für den privaten, nicht-kommerziellen Gebrauch bestimmt.
+
+Verwendete externe Bibliothek:
+- Leaflet, Version 1.9.4 – 2-Clause-BSD-Lizenz
+  https://leafletjs.com/, eingebunden über unpkg (CDN) mit
+  Subresource-Integrity-Absicherung (offizielle Hashes von
+  leafletjs.com/download.html), nicht lokal gebündelt.
+
+Verwendete externe Datenquellen (nur Live-Abruf, kein Bundling):
+- Open-Meteo (https://open-meteo.com) – Wetterdaten, Lizenz CC BY 4.0,
+  kostenlose Nutzung für nicht-kommerzielle Zwecke.
+- OpenStreetMap-Mitwirkende (https://www.openstreetmap.org/copyright) –
+  Kartendaten, Lizenz ODbL. Kartenkacheln über die offizielle
+  Standard-Einzeldomain tile.openstreetmap.org (kein veraltetes
+  {s}-Subdomain-Schema), kostenlos, ohne API-Key, ohne Registrierung.
+  Keine vertraglich zugesicherte SLA/Verfügbarkeit.
+- OSRM-Demo-Server (https://router.project-osrm.org, betrieben von
+  FOSSGIS/OpenStreetMap Deutschland) – Straßen-Routenberechnung für
+  die Navigations-Funktion, ebenfalls auf Basis von OpenStreetMap-
+  Daten (Lizenz ODbL). Kostenlos, ohne API-Key, ohne Registrierung;
+  Fair-Use-Beschränkung (max. 1 Anfrage/Sekunde), keine vertraglich
+  zugesicherte SLA/Verfügbarkeit. Attribution und Link zur
+  Fehlermeldung ("Kartenfehler melden") direkt in der App sichtbar.
+- Nominatim (https://nominatim.openstreetmap.org, betrieben von der
+  OpenStreetMap Foundation) – Adresssuche für die optionale
+  Navigations-Funktion, Kartendaten Lizenz ODbL. Kostenlos, ohne
+  API-Key, ohne Registrierung; wird nur bei aktiver Adresseingabe
+  angefragt, nicht bei jedem Tastenanschlag, entsprechend den
+  Nominatim-Nutzungsbedingungen. Keine vertraglich zugesicherte
+  SLA/Verfügbarkeit.
+
+Bewusst NICHT eingebunden:
+- Kein Hintergrund-/Auto-Tracking – Standortabfrage erfolgt nur nach
+  ausdrücklichem Nutzertipp auf „Start", siehe Datenschutzerklärung.
+- Keine Cloud-Synchronisierung von Touren, Notizen oder Fotos.
+- Keine Analyse-, Tracking- oder Werbedienste.
+- Keine Google Fonts / Web-Fonts – ausschließlich Systemschriften.
+- MapLibre GL JS + OpenFreeMap (frühere Version) – ersetzt durch
+  Leaflet + tile.openstreetmap.org, denselben Kartenstandard wie in
+  den anderen Wahr-Apps: MapLibre benötigt WebGL, das auf manchen
+  Geräten/Einstellungen nicht verfügbar ist und dort zu einer leeren
+  Karte führte; Leaflet zeichnet ohne WebGL (reines DOM/Canvas).
+
+App-Icon: eigens erstellt (stilisierte Route mit Start-/Zielpunkt).

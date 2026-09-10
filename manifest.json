@@ -1,0 +1,26 @@
+{
+  "name": "WalkWahr",
+  "short_name": "WalkWahr",
+  "description": "Strecken zu Fuß, mit dem Rad oder Auto manuell tracken – mit Karte, Wetter und Verlauf, alles lokal auf deinem Gerät.",
+  "start_url": "wk-index.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0F22",
+  "theme_color": "#1B2340",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "wk-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "wk-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

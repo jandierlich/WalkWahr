@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Datenschutzerklärung – WalkWahr</title>
+<link rel="icon" href="wk-icon-192.png">
+<link rel="stylesheet" href="wk-style.css">
+</head>
+<body>
+<div class="legalpage">
+  <p><a href="wk-index.html">← Zurück zu WalkWahr</a></p>
+  <h1>Datenschutzerklärung</h1>
+
+  <h2>1. Verantwortlicher</h2>
+  <p>
+    Jan Dierlich, Steenacker 33, 25499 Tangstedt, Deutschland<br>
+    E-Mail: jandierlich@googlemail.com
+  </p>
+
+  <h2>2. Grundprinzip: Alles bleibt auf deinem Gerät</h2>
+  <p>WalkWahr speichert Touren, Notizen, Fotos und Einstellungen ausschließlich lokal in deinem Browser (localStorage). Es gibt keinen eigenen Server, kein Nutzerkonto und keine Übertragung dieser Daten an Jan Dierlich oder Dritte. Wird der Browser-Speicher gelöscht (z. B. beim Deinstallieren der App oder Zurücksetzen des Browsers), gehen diese Daten unwiderruflich verloren.</p>
+
+  <h2>3. Standortdaten (GPS)</h2>
+  <p>WalkWahr fragt deinen Standort nur ab, wenn du dies aktiv auslöst – konkret beim Tippen auf „Start", um eine Tour aufzuzeichnen, oder beim Bestätigen des „▶️ Start"-Buttons in der Navigation, nachdem du ein Ziel gewählt hast. Ein automatisches Tracking im Hintergrund oder ohne deine ausdrückliche Aktion findet nicht statt. Solange eine Tour läuft oder eine Navigation aktiv ist, wird deine Position fortlaufend erfasst (per <code>watchPosition</code>-Browser-API), um Route, Strecke und Tempo zu berechnen bzw. um während der Navigation Richtungspfeil, Restdistanz und – bei Abweichung von der berechneten Route – eine neue Route zu ermitteln (siehe Abschnitt 6, OSRM). Bei reiner Navigation ohne gleichzeitige Tour-Aufzeichnung startet diese fortlaufende Standorterfassung erst mit dem „▶️ Start"-Button in der Navigations-Zielkarte, nicht bereits während der Zielauswahl. Sofern dein Gerät sie liefert, wird bei einer aufgezeichneten Tour auch ein GPS-Höhenwert erfasst und für ein grobes Höhenprofil (Anstieg/Gefälle) verwendet – eine Schätzung, kein präziser barometrischer Messwert. Mit „Tour beenden" bzw. „Navigation beenden" stoppt die Standorterfassung sofort. Die aufgezeichnete Route wird – falls du die Tour speicherst – lokal auf deinem Gerät abgelegt; bei reiner Navigation ohne Aufzeichnung wird keine Route gespeichert. Wird die App gesperrt oder in den Hintergrund gewechselt, unterbricht dein Betriebssystem die Standorterfassung technisch bedingt; WalkWahr erkennt eine solche Lücke beim Zurückkehren in den Vordergrund, fragt dich, wie die betroffene Zeit gewertet werden soll, und markiert die Zeitspanne auf der Karte gestrichelt, da für diesen Abschnitt keine echten GPS-Punkte vorliegen. Es werden dabei keine zusätzlichen Standortdaten erhoben – lediglich der bereits vorhandene Zeitstempel des nächsten Punkts wird ausgewertet.</p>
+  <p><strong>Rechtsgrundlage:</strong> Die Verarbeitung deiner Standortdaten sowie die Übermittlung von Koordinaten an die in Abschnitt 6 genannten externen Dienste (Open-Meteo, Nominatim, OSRM) erfolgt ausschließlich lokal auf deinem Gerät bzw. direkt von deinem Gerät aus und dient allein der von dir aktiv angeforderten Kernfunktion der App (Tour-Tracking bzw. Navigation) – Rechtsgrundlage ist Art. 6 Abs. 1 lit. b) DSGVO (Erfüllung eines Nutzungsverhältnisses auf deinen Wunsch), hilfsweise Art. 6 Abs. 1 lit. f) DSGVO (berechtigtes Interesse an der Bereitstellung der angeforderten Funktion). Jan Dierlich selbst erhält dabei zu keinem Zeitpunkt Kenntnis von deinen Standortdaten, siehe Abschnitt 2.</p>
+
+  <h2>4. Kamera / Fotos für Notizen</h2>
+  <p>Während einer laufenden Tour kannst du optional eine Notiz mit Titel, Text und einem Foto anlegen. Der Kamera- bzw. Fotomediathek-Zugriff erfolgt nur, wenn du dies aktiv auswählst. Fotos werden vor dem Speichern verkleinert und ausschließlich lokal (localStorage) abgelegt – sie werden nicht hochgeladen oder an Dritte übertragen.</p>
+
+  <h2>5. Lokal gespeicherte Daten (localStorage)</h2>
+  <p>Für die genannten Speicherungen greift WalkWahr auf den localStorage deines Browsers zu. Dieser Zugriff ist gemäß § 25 Abs. 2 Nr. 2 TDDDG von der Einwilligungspflicht ausgenommen, da er unbedingt erforderlich ist, um die von dir ausdrücklich gewünschte Funktion (Speicherung deiner Touren und Einstellungen auf deinem Gerät) bereitzustellen – ein Cookie-Banner ist daher nicht nötig.</p>
+  <ul>
+    <li><code>wk-theme</code> – gewählter Hell-/Dunkelmodus</li>
+    <li><code>wk-onboarding-seen</code> – ob die Einführung bereits angezeigt wurde</li>
+    <li><code>wk-tours</code> – gespeicherte Touren (Titel, Modus, Zeit, Strecke, Route, Wetter-Schnappschuss, Notizen inkl. Fotos und Standort, Kilometer-Splits, Favoriten-Markierung)</li>
+    <li><code>wk-navfavorites</code> – von dir gemerkte Navigationsziele (Name, Koordinaten), auf Wunsch selbst angelegt und jederzeit löschbar</li>
+    <li><code>wk-settings</code> – z. B. ob die automatische Pause bei Stillstand aktiviert ist</li>
+    <li><code>wk-achievements</code> – welche Erfolge bereits freigeschaltet wurden</li>
+  </ul>
+
+  <h2>5a. Sicherung, Export und Teilen (nur auf deine Auswahl hin)</h2>
+  <p>Über „Sicherung exportieren" (Info-Tab) kannst du alle Touren als JSON-Datei speichern, über „Sicherung importieren" eine solche Datei wieder einspielen. In der Tour-Detailansicht kannst du eine einzelne Tour zusätzlich als GPX-Datei exportieren oder als Text teilen. In allen drei Fällen nutzt WalkWahr, falls vom Gerät unterstützt, die Teilen-Funktion deines Betriebssystems (Web-Share-API) – du wählst dabei selbst aus, wo die Datei landet (z. B. Dateien-App, Mail, Messenger). WalkWahr selbst überträgt dabei nichts an Jan Dierlich oder sonstige Server; die Daten verlassen die App ausschließlich durch deine eigene, aktive Auswahl im Teilen-Menü.</p>
+
+  <h2>6. Externe Dienste</h2>
+  <p>Beim Erstellen bzw. Ansehen einer Tour lädt WalkWahr Daten von folgenden externen Anbietern:</p>
+  <ul>
+    <li><strong>Open-Meteo</strong> (open-meteo.com) – Wetterdaten (Temperatur, Wetterlage) am Startpunkt deiner Tour. Kostenlos nutzbar, Lizenz CC BY 4.0. Dabei werden die Koordinaten deines Startpunkts an Open-Meteo übermittelt.</li>
+    <li><strong>OpenStreetMap</strong> (tile.openstreetmap.org) – Kartenkacheln zur Darstellung deiner Route, Lizenz ODbL. Kostenloser, öffentlicher Kartendienst ohne Registrierung und ohne API-Key. Beim Laden der Karte werden technisch bedingt IP-Adresse und der sichtbare Kartenausschnitt an OpenStreetMap übermittelt.</li>
+    <li><strong>unpkg</strong> (unpkg.com) – Auslieferung der quelloffenen Kartenbibliothek Leaflet. Beim Laden der App wird dazu eine Verbindung zu unpkg aufgebaut.</li>
+    <li><strong>Nominatim</strong> (nominatim.openstreetmap.org) – Adresssuche für die optionale Navigations-Funktion. Nur wenn du dort selbst eine Adresse eingibst und die Suche auslöst, wird diese Anfrage an Nominatim übermittelt, um Koordinaten zu ermitteln. Alternativ lässt sich das Ziel auch direkt auf der Karte antippen, dann entfällt diese Anfrage.</li>
+    <li><strong>OSRM-Demo-Server</strong> (router.project-osrm.org, betrieben von FOSSGIS) – berechnet bei aktiver Navigation die Straßenroute zu deinem gewählten Ziel. Dabei werden dein aktueller Standort und die Zielkoordinate an diesen Server übermittelt. Die Anfrage erfolgt einmalig beim Setzen des Ziels sowie erneut, wenn du spürbar von der berechneten Route abweichst – nicht bei jedem einzelnen GPS-Punkt. Ist der Dienst nicht erreichbar (z. B. offline), zeigt WalkWahr stattdessen ohne weitere Anfrage nur Richtungspfeil und Luftlinien-Entfernung an. Kostenloser, öffentlicher Dienst ohne Registrierung und ohne API-Key, mit Fair-Use-Beschränkung (max. 1 Anfrage/Sekunde) und ohne vertraglich zugesicherte SLA/Verfügbarkeit; die zugrundeliegenden Straßendaten stammen von OpenStreetMap-Mitwirkenden (Lizenz ODbL). Attribution und ein Link zur Fehlermeldung ("Kartenfehler melden") werden gemäß den Nutzungsbedingungen des Betreibers direkt in der Navigations-Karte angezeigt.</li>
+  </ul>
+  <p>Alle Dienste werden nur live abgerufen und nicht dauerhaft von WalkWahr zwischengespeichert (siehe Service Worker, Abschnitt 7). Es werden dabei keine Namen, Kontaktdaten oder Gerätekennungen übermittelt – lediglich technisch notwendige Verbindungsdaten (u. a. IP-Adresse) sowie ggf. Koordinaten. Nominatim wird von der OpenStreetMap Foundation mit Sitz im Vereinigten Königreich betrieben; für Datenübermittlungen dorthin liegt ein Angemessenheitsbeschluss der EU-Kommission vor, sodass kein zusätzliches Datenschutzniveau nachgewiesen werden muss. OSRM-Demo-Server und OpenStreetMap-Kartenkacheln werden nach eigenen Angaben der Betreiber innerhalb der EU betrieben; die Server von Open-Meteo können sich nach dessen eigenen Angaben auch außerhalb der EU, u. a. in Nordamerika, befinden.</p>
+
+  <h2>6a. Hosting</h2>
+  <p>Diese App wird als statische Website über GitHub Pages ausgeliefert (Anbieter: GitHub, Inc., 88 Colorado Ave, San Francisco, CA 94107, USA, eine Tochtergesellschaft der Microsoft Corporation). Beim Aufruf verarbeitet GitHub technisch notwendige Zugriffsdaten (u. a. IP-Adresse, Datum/Uhrzeit des Zugriffs, aufgerufene Datei, Browsertyp) in Server-Logfiles, um die Seite bereitzustellen. Die USA gelten datenschutzrechtlich als Drittland; GitHub/Microsoft ist nach eigenen Angaben unter dem EU-US Data Privacy Framework (DPF) zertifiziert, wodurch ein angemessenes Datenschutzniveau sichergestellt werden soll. Rechtsgrundlage ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO) an einer zuverlässigen technischen Bereitstellung.</p>
+
+  <h2>7. Offline-Funktion (Service Worker)</h2>
+  <p>WalkWahr nutzt einen Service Worker, der ausschließlich die App-eigenen Dateien (HTML, CSS, JavaScript, Icons) lokal zwischenspeichert, damit die App auch offline startet. Wetterdaten, Kartenkacheln und die Leaflet-Bibliothek werden davon bewusst ausgenommen und stets live geladen.</p>
+
+  <h2>8. Deine Rechte</h2>
+  <p>Da keine Daten an Jan Dierlich übertragen oder von ihm gespeichert werden, bestehen ihm gegenüber keine Auskunfts-, Berichtigungs- oder Löschungsansprüche bezüglich deiner Tourdaten – du hast über die App-Funktionen (Löschen einzelner Touren, Zurücksetzen des Browser-Speichers) jederzeit selbst volle Kontrolle. Bezüglich der bei Open-Meteo, OpenStreetMap, OSRM und unpkg anfallenden technischen Verbindungsdaten kannst du dich an die jeweiligen Anbieter wenden. Dir steht zudem ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde zu, z. B. beim ULD Schleswig-Holstein.</p>
+
+  <h2>9. Keine Cookies, kein Tracking, keine Werbung</h2>
+  <p>WalkWahr verwendet keine Cookies, keine Analyse- oder Trackingdienste und zeigt keine Werbung an.</p>
+
+  <h2 id="lizenzen">10. Lizenzen &amp; Datenquellen (technische Bibliotheken)</h2>
+  <p><strong>Eigener Code (HTML/CSS/JavaScript):</strong><br>Copyright (c) 2026 Jan Dierlich. Nur für den privaten, nicht-kommerziellen Gebrauch bestimmt.</p>
+  <p><strong>Verwendete externe Bibliothek:</strong></p>
+  <ul>
+    <li>Leaflet, Version 1.9.4 – 2-Clause-BSD-Lizenz, <a href="https://leafletjs.com/" target="_blank" rel="noopener">leafletjs.com</a>, eingebunden über unpkg (CDN) mit Integritätsprüfung (Subresource Integrity), nicht lokal gebündelt.</li>
+  </ul>
+  <p><strong>Verwendete externe Datenquellen (nur Live-Abruf, kein Bundling):</strong></p>
+  <ul>
+    <li>Open-Meteo (open-meteo.com) – Wetterdaten, Lizenz CC BY 4.0, kostenlose Nutzung für nicht-kommerzielle Zwecke.</li>
+    <li>OpenStreetMap-Mitwirkende (tile.openstreetmap.org, openstreetmap.org/copyright) – Kartendaten und -kacheln, Lizenz ODbL. Öffentliche Standard-Kachelquelle, kostenlos, ohne API-Key, ohne Registrierung; Nutzung gemäß der allgemeinen OSM-Kachelnutzungsrichtlinie, keine vertraglich zugesicherte SLA/Verfügbarkeit.</li>
+    <li>Nominatim (nominatim.openstreetmap.org) – Adresssuche auf Basis von OpenStreetMap-Daten, Lizenz ODbL. Kostenlos, ohne API-Key, ohne Registrierung; keine vertraglich zugesicherte SLA/Verfügbarkeit.</li>
+    <li>OSRM-Demo-Server (router.project-osrm.org, FOSSGIS) – Straßen-Routenberechnung auf Basis von OpenStreetMap-Daten, Lizenz ODbL. Kostenlos, ohne API-Key, ohne Registrierung; Fair-Use-Beschränkung, keine vertraglich zugesicherte SLA/Verfügbarkeit.</li>
+  </ul>
+  <p><strong>Bewusst NICHT eingebunden:</strong></p>
+  <ul>
+    <li>Kein Hintergrund-/Auto-Tracking – Standortabfrage erfolgt nur nach ausdrücklichem Nutzertipp auf „Start“, siehe Abschnitt 3.</li>
+    <li>Keine Cloud-Synchronisierung von Touren, Notizen oder Fotos.</li>
+    <li>Keine Analyse-, Tracking- oder Werbedienste.</li>
+    <li>Keine Google Fonts / Web-Fonts – ausschließlich Systemschriften.</li>
+  </ul>
+  <p class="small">App-Icon: eigens erstellt.</p>
+</div>
+</body>
+</html>
