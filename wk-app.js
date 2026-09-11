@@ -332,13 +332,16 @@
   let navRouteLine = null, navRouteCoords = null, navRouteSteps = null, navStepIndex = 0;
   let navRouteFetching = false, navLastRouteFetchAt = 0, navRouteFetchFailedOnce = false;
   const OSRM_PROFILE = { walk: "foot", bike: "bike", car: "driving" };
-  const OSRM_MIN_REFETCH_MS = 20000;   // Fair-Use: nicht öfter als alle 20s neu anfragen
+  const OSRM_MIN_REFETCH_MS = 6000;    // Mindestabstand zwischen zwei Neuanfragen; die OSRM-Demo-
+                                        // Fair-Use-Regel erlaubt bis zu 1 Anfrage/Sekunde – 6s bleibt
+                                        // bei einer einzelnen Navigation weit darunter, macht die
+                                        // Neuberechnung nach Verfahren aber deutlich spürbar schneller
   const OSRM_OFFROUTE_M = { walk: 25, bike: 45, car: 70 }; // ab dieser Abweichung gilt die Route als "verlassen" (je nach Modus)
   const OSRM_ARRIVE_STEP_M = 20;        // Abstand zum Manöverpunkt, ab dem zum nächsten Schritt gewechselt wird
   const TURN_ALERT_TRIGGER_M = 100;     // Abstand zum Manöver, ab dem Ton/Pfeil ausgelöst werden
   const TURN_ALERT_NEAR_M = 20;         // Reduzierter Abstand, falls die übernächste Richtungsänderung
                                          // weniger als TURN_ALERT_TRIGGER_M vom aktuellen Manöver entfernt liegt
-  const TURN_ALERT_DISPLAY_MS = 5000;   // Anzeigedauer des großen Abbiegepfeils
+  const TURN_ALERT_DISPLAY_MS = 8000;   // Anzeigedauer des großen Abbiegepfeils
 
   /* ---------- Kartenausrichtung in Fahrtrichtung ----------
      Die Live-Karte wird per CSS-Transform gedreht, sodass die aktuelle
@@ -695,26 +698,44 @@
       if (!AudioCtx) return;
       if (!turnAudioCtx) turnAudioCtx = new AudioCtx();
       if (turnAudioCtx.state === "suspended") turnAudioCtx.resume().catch(() => {});
+      // iOS/Safari entsperrt die Audioausgabe oft erst endgültig, wenn
+      // innerhalb der Nutzer-Geste tatsächlich ein Ton gestartet wird (nicht
+      // nur resume()) – deshalb hier ein extrem kurzer, praktisch unhörbarer
+      // Ton direkt beim Antippen von "Start".
+      const osc = turnAudioCtx.createOscillator(), gain = turnAudioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, turnAudioCtx.currentTime);
+      osc.connect(gain); gain.connect(turnAudioCtx.destination);
+      osc.start(turnAudioCtx.currentTime);
+      osc.stop(turnAudioCtx.currentTime + 0.01);
     } catch (e) { /* Ton optional */ }
   }
   function playTurnChime() {
-    try {
-      if (!turnAudioCtx) return;
-      if (turnAudioCtx.state === "suspended") turnAudioCtx.resume().catch(() => {});
-      const ctx = turnAudioCtx, now = ctx.currentTime;
-      const tone = (freq, start, dur, peak) => {
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.type = "sine"; osc.frequency.setValueAtTime(freq, now + start);
-        gain.gain.setValueAtTime(0, now + start);
-        gain.gain.linearRampToValueAtTime(peak, now + start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(now + start); osc.stop(now + start + dur + 0.02);
-      };
-      // sanfter, zweitönig aufsteigender Klang (kein schrilles Piepen)
-      tone(880, 0, 0.4, 0.16);
-      tone(1320, 0.14, 0.42, 0.14);
-    } catch (e) { /* Ton optional */ }
+    if (!turnAudioCtx) return;
+    const ctx = turnAudioCtx;
+    const doPlay = () => {
+      try {
+        const now = ctx.currentTime;
+        const tone = (freq, start, dur, peak) => {
+          const osc = ctx.createOscillator(), gain = ctx.createGain();
+          osc.type = "sine"; osc.frequency.setValueAtTime(freq, now + start);
+          gain.gain.setValueAtTime(0, now + start);
+          gain.gain.linearRampToValueAtTime(peak, now + start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now + start); osc.stop(now + start + dur + 0.02);
+        };
+        // sanfter, zweitönig aufsteigender Klang (kein schrilles Piepen)
+        tone(880, 0, 0.4, 0.16);
+        tone(1320, 0.14, 0.42, 0.14);
+      } catch (e) { /* Ton optional */ }
+    };
+    // Wurde der Kontext zwischenzeitlich angehalten (z. B. nach kurzem
+    // Bildschirm-Sperren), MUSS auf das Ende von resume() gewartet werden,
+    // bevor Töne eingeplant werden – sonst verpufft der Ton lautlos, weil
+    // die Zeitstempel gegen eine noch stehende Uhr berechnet wurden. Das war
+    // der eigentliche Grund für das fehlende Signal.
+    if (ctx.state === "suspended") ctx.resume().then(doPlay).catch(() => {});
+    else doPlay();
   }
   function isTurnManeuver(step) {
     if (!step || !step.maneuver) return false;
@@ -762,17 +783,35 @@
       <polygon points="82,90 68,64 96,64" fill="currentColor"/>
     </svg>`;
   }
-  function roundaboutArrowSvg() {
+  /* Kreisverkehr-Symbol: Ring in der Mitte plus Einfahrt (unten) und
+     Ausfahrt-Pfeil, dessen Richtung sich – wie beim normalen Abbiegepfeil
+     (bentArrowSvg) – nach dem tatsächlichen OSRM-Modifier der Ausfahrt
+     richtet (angleDeg: 0 = geradeaus, negativ = links, positiv = rechts).
+     Vorher zeigte der Pfeil immer fest nach rechts oben, unabhängig von der
+     wirklichen Ausfahrtrichtung – das war das "falsche Symbol". */
+  function roundaboutArrowSvg(angleDeg) {
+    const cx = 50, cy = 46, r = 22;
+    const rad = (angleDeg * Math.PI) / 180;
+    const dirX = Math.sin(rad), dirY = -Math.cos(rad);
+    const exitStartX = cx + r * dirX, exitStartY = cy + r * dirY;
+    const armLen = 26, headLen = 20, headWidth = 28;
+    const endX = cx + (r + armLen) * dirX, endY = cy + (r + armLen) * dirY;
+    const backX = endX - dirX * headLen, backY = endY - dirY * headLen;
+    const perpX = -dirY, perpY = dirX;
+    const p1x = backX + (perpX * headWidth) / 2, p1y = backY + (perpY * headWidth) / 2;
+    const p2x = backX - (perpX * headWidth) / 2, p2y = backY - (perpY * headWidth) / 2;
+    const f = (n) => n.toFixed(1);
     return `<svg viewBox="0 0 100 100" width="100%" height="100%" overflow="visible">
-      <path d="M 50 94 L 50 66" stroke="currentColor" stroke-width="15" fill="none" stroke-linecap="round"/>
-      <circle cx="50" cy="42" r="24" fill="none" stroke="currentColor" stroke-width="12" stroke-dasharray="118 40" stroke-linecap="round" transform="rotate(-40 50 42)"/>
-      <polygon points="74,20 62,18 68,32" fill="currentColor"/>
+      <path d="M 50 94 L 50 ${f(cy + r)}" stroke="currentColor" stroke-width="15" fill="none" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="currentColor" stroke-width="10"/>
+      <path d="M ${f(exitStartX)} ${f(exitStartY)} L ${f(backX)} ${f(backY)}" stroke="currentColor" stroke-width="15" fill="none" stroke-linecap="round"/>
+      <polygon points="${f(endX)},${f(endY)} ${f(p1x)},${f(p1y)} ${f(p2x)},${f(p2y)}" fill="currentColor"/>
     </svg>`;
   }
   function turnArrowMarkup(step) {
     const m = step && step.maneuver;
     if (!m) return bentArrowSvg(0);
-    if (m.type === "roundabout" || m.type === "rotary") return roundaboutArrowSvg();
+    if (m.type === "roundabout" || m.type === "rotary") return roundaboutArrowSvg(turnBendDeg(m.modifier));
     if (m.modifier === "uturn") return uturnArrowSvg();
     return bentArrowSvg(turnBendDeg(m.modifier));
   }
