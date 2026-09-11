@@ -34,12 +34,12 @@
   }
 
   let toastTimer = null;
-  function showToast(msg) {
+  function showToast(msg, durationMs) {
     const t = $("toast");
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+    toastTimer = setTimeout(() => t.classList.remove("show"), durationMs || 2200);
   }
 
   function vibrate(pattern) {
@@ -709,7 +709,7 @@
       osc.stop(turnAudioCtx.currentTime + 0.01);
     } catch (e) { /* Ton optional */ }
   }
-  function playTurnChime() {
+  function playChime(tones) {
     if (!turnAudioCtx) return;
     const ctx = turnAudioCtx;
     const doPlay = () => {
@@ -724,18 +724,29 @@
           osc.connect(gain); gain.connect(ctx.destination);
           osc.start(now + start); osc.stop(now + start + dur + 0.02);
         };
-        // sanfter, zweitönig aufsteigender Klang (kein schrilles Piepen)
-        tone(880, 0, 0.4, 0.16);
-        tone(1320, 0.14, 0.42, 0.14);
+        tones.forEach((t) => tone(t.freq, t.start, t.dur, t.peak));
       } catch (e) { /* Ton optional */ }
     };
     // Wurde der Kontext zwischenzeitlich angehalten (z. B. nach kurzem
     // Bildschirm-Sperren), MUSS auf das Ende von resume() gewartet werden,
     // bevor Töne eingeplant werden – sonst verpufft der Ton lautlos, weil
-    // die Zeitstempel gegen eine noch stehende Uhr berechnet wurden. Das war
-    // der eigentliche Grund für das fehlende Signal.
+    // die Zeitstempel gegen eine noch stehende Uhr berechnet wurden.
     if (ctx.state === "suspended") ctx.resume().then(doPlay).catch(() => {});
     else doPlay();
+  }
+  function playTurnChime() {
+    // sanfter, zweitönig aufsteigender Klang (kein schrilles Piepen)
+    playChime([{ freq: 880, start: 0, dur: 0.4, peak: 0.16 }, { freq: 1320, start: 0.14, dur: 0.42, peak: 0.14 }]);
+  }
+  function playArrivalChime() {
+    // eigenständiger, dreitönig aufsteigender Klang – bewusst anders als das
+    // Abbiege-Signal, damit "Ziel erreicht" nicht mit einer Richtungsänderung
+    // verwechselt wird.
+    playChime([
+      { freq: 660, start: 0, dur: 0.3, peak: 0.15 },
+      { freq: 880, start: 0.12, dur: 0.3, peak: 0.15 },
+      { freq: 1320, start: 0.24, dur: 0.5, peak: 0.18 },
+    ]);
   }
   function isTurnManeuver(step) {
     if (!step || !step.maneuver) return false;
@@ -988,12 +999,16 @@
     if (distM <= 30) {
       if (!navArrivedShown) {
         navArrivedShown = true;
-        showToast("Zielort erreicht.");
+        showToast("Zielort erreicht.", 5000);
         vibrate([80, 50, 80]);
-        // Ziel erreicht: Routing/Zielführung beenden (Ziel, Route, Pfeil,
-        // Kartendrehung/-zoom werden zurückgesetzt) – die laufende
-        // Tour-Aufzeichnung (falls aktiv) läuft unabhängig davon weiter.
+        playArrivalChime();
+        // Ziel erreicht: Zielführung beenden (Ziel, Route, Pfeil,
+        // Kartendrehung/-zoom werden zurückgesetzt). Lief gleichzeitig eine
+        // Tour-Aufzeichnung, wird sie jetzt automatisch mitbeendet (wie ein
+        // Tipp auf "Tour beenden"), statt unbemerkt im Hintergrund weiterzulaufen.
+        const hadTour = !!tour;
         clearNavTarget();
+        if (hadTour) stopSession(false);
       }
     } else {
       navArrivedShown = false;
