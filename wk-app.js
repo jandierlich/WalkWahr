@@ -332,10 +332,10 @@
   let navRouteLine = null, navRouteCoords = null, navRouteSteps = null, navStepIndex = 0;
   let navRouteFetching = false, navLastRouteFetchAt = 0, navRouteFetchFailedOnce = false;
   const OSRM_PROFILE = { walk: "foot", bike: "bike", car: "driving" };
-  const OSRM_MIN_REFETCH_MS = 6000;    // Mindestabstand zwischen zwei Neuanfragen; die OSRM-Demo-
-                                        // Fair-Use-Regel erlaubt bis zu 1 Anfrage/Sekunde – 6s bleibt
+  const OSRM_MIN_REFETCH_MS = 4000;    // Mindestabstand zwischen zwei Neuanfragen; die OSRM-Demo-
+                                        // Fair-Use-Regel erlaubt bis zu 1 Anfrage/Sekunde – 4s bleibt
                                         // bei einer einzelnen Navigation weit darunter, macht die
-                                        // Neuberechnung nach Verfahren aber deutlich spürbar schneller
+                                        // Neuberechnung nach Verfahren aber nochmal spürbar schneller
   const OSRM_OFFROUTE_M = { walk: 25, bike: 45, car: 70 }; // ab dieser Abweichung gilt die Route als "verlassen" (je nach Modus)
   const OSRM_ARRIVE_STEP_M = 20;        // Abstand zum Manöverpunkt, ab dem zum nächsten Schritt gewechselt wird
   const TURN_ALERT_TRIGGER_M = 100;     // Abstand zum Manöver, ab dem Ton/Pfeil ausgelöst werden
@@ -1650,7 +1650,21 @@
 
   /* ---------- Routen-Miniatur (kleine SVG-Vorschau ohne Kartenkacheln) ---------- */
   function buildRouteThumbSvg(path, color, size) {
-    if (!path || path.length < 2) return "";
+    // Auch bei sehr kurzen/spärlich aufgezeichneten Touren (z. B. wenn eine
+    // Navigation gleich zu Beginn automatisch als Tour beendet wurde) soll
+    // im Verlauf immer eine kleine Vorschau erscheinen statt einer leeren
+    // Lücke – sonst wirkt der Eintrag, als gäbe es nichts zum Öffnen.
+    if (!path || path.length === 0) {
+      return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+        <circle cx="${size / 2}" cy="${size / 2}" r="4" fill="${color}"/>
+      </svg>`;
+    }
+    if (path.length === 1) {
+      return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+        <circle cx="${size / 2}" cy="${size / 2}" r="5" fill="none" stroke="${color}" stroke-width="2.4"/>
+        <circle cx="${size / 2}" cy="${size / 2}" r="2" fill="${color}"/>
+      </svg>`;
+    }
     const lats = path.map((p) => p.lat), lons = path.map((p) => p.lon);
     const minLat = Math.min(...lats), maxLat = Math.max(...lats);
     const minLon = Math.min(...lons), maxLon = Math.max(...lons);
