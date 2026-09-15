@@ -1,4 +1,4 @@
-const WK_CACHE = "walkwahr-v52";
+const WK_CACHE = "walkwahr-v52-1";
 const WK_FILES = [
   "wk-index.html",
   "wk-style.css",
@@ -36,9 +36,27 @@ self.addEventListener("fetch", (event) => {
     return; // Standard-Netzwerkverhalten, kein Eingriff
   }
 
+  // Netzwerk-first: Die aktuelle Version einer eigenen Datei wird bei
+  // bestehender Verbindung IMMER frisch vom Server geholt und der Cache
+  // dabei aktualisiert. Der Cache dient nur noch als Fallback, wenn kein
+  // Netz verfügbar ist – nicht mehr als Standardquelle.
+  //
+  // Hintergrund/Grund für den Wechsel: Vorher war die Auslieferung
+  // Cache-first. Ein bereits installierter Service Worker aktualisiert
+  // sein Cache aber NUR, wenn sich wk-sw.js selbst byteweise ändert –
+  // reine Fixes in wk-app.js/wk-index.html/wk-style.css (z. B. an der
+  // Tour-Detail-Karte) kamen dadurch auf Geräten mit alter SW-Version nie
+  // an, obwohl sie auf dem Server längst aktualisiert waren. Das erklärte
+  // das gemeldete "mal geht's, mal nicht". Mit Netzwerk-first ist das
+  // unabhängig vom SW-Lebenszyklus: Es zählt einfach der aktuelle Stand
+  // vom Server, sobald online.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).catch(() => cached);
-    })
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(WK_CACHE).then((cache) => cache.put(event.request, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
