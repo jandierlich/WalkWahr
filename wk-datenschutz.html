@@ -49,7 +49,10 @@
   <ul>
     <li><strong>Open-Meteo</strong> (open-meteo.com) – Wetterdaten (Temperatur, Wetterlage) am Startpunkt deiner Tour. Kostenlos nutzbar, Lizenz CC BY 4.0. Dabei werden die Koordinaten deines Startpunkts an Open-Meteo übermittelt.</li>
     <li><strong>OpenStreetMap</strong> (tile.openstreetmap.org) – Kartenkacheln zur Darstellung deiner Route, Lizenz ODbL. Kostenloser, öffentlicher Kartendienst ohne Registrierung und ohne API-Key. Beim Laden der Karte werden technisch bedingt IP-Adresse und der sichtbare Kartenausschnitt an OpenStreetMap übermittelt.</li>
-    <li><strong>unpkg</strong> (unpkg.com) – Auslieferung der quelloffenen Kartenbibliothek Leaflet. Diese wird NICHT bereits beim Öffnen der App geladen, sondern erst dann, wenn du eine Kartenansicht aufrufst und der einmaligen Abfrage dazu ausdrücklich zustimmst; ohne diese Zustimmung wird zu keinem Zeitpunkt eine Verbindung zu unpkg aufgebaut und die App zeigt stattdessen einen Hinweistext anstelle der Karte. Deine Entscheidung wird lokal auf deinem Gerät gespeichert.</li>
+    <li><strong>unpkg</strong> (unpkg.com) – Auslieferung der quelloffenen Kartenbibliothek Leaflet. Diese wird NICHT bereits beim Öffnen der App geladen, sondern erst dann, wenn du eine Kartenansicht aufrufst und der einmaligen Abfrage dazu ausdrücklich zustimmst; ohne diese Zustimmung wird zu keinem Zeitpunkt eine Verbindung zu unpkg aufgebaut und die App zeigt stattdessen einen Hinweistext anstelle der Karte. <strong>Rechtsgrundlage</strong> ist ausschließlich deine hier beschriebene, ausdrückliche Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die als einfache Ja/Nein-Angabe lokal auf deinem Gerät gespeichert wird (<code>wk_map_consent</code>, siehe Punkt 5) und nicht an uns übertragen wird. Du kannst sie jederzeit mit folgendem Button widerrufen; danach wird beim nächsten Aufruf einer Kartenansicht erneut gefragt:
+      <br><button type="button" id="map-consent-reset-btn" class="btn btn-outline" style="margin-top:8px;">Einwilligung zum Kartenladen zurücksetzen</button>
+      <span id="map-consent-reset-status" class="small" style="display:block;margin-top:6px;"></span>
+    </li>
     <li><strong>Nominatim</strong> (nominatim.openstreetmap.org) – Adresssuche für die optionale Navigations-Funktion. Nur wenn du dort selbst eine Adresse eingibst und die Suche auslöst, wird diese Anfrage an Nominatim übermittelt, um Koordinaten zu ermitteln. Alternativ lässt sich das Ziel auch direkt auf der Karte antippen, dann entfällt diese Anfrage.</li>
     <li><strong>OSRM-Demo-Server</strong> (router.project-osrm.org, betrieben von FOSSGIS) – berechnet bei aktiver Navigation die Straßenroute zu deinem gewählten Ziel. Dabei werden dein aktueller Standort und die Zielkoordinate an diesen Server übermittelt. Die Anfrage erfolgt einmalig beim Setzen des Ziels sowie erneut, wenn du spürbar von der berechneten Route abweichst – nicht bei jedem einzelnen GPS-Punkt. Ist der Dienst nicht erreichbar (z. B. offline), zeigt WalkWahr stattdessen ohne weitere Anfrage nur Richtungspfeil und Luftlinien-Entfernung an. Kostenloser, öffentlicher Dienst ohne Registrierung und ohne API-Key, mit Fair-Use-Beschränkung (max. 1 Anfrage/Sekunde) und ohne vertraglich zugesicherte SLA/Verfügbarkeit; die zugrundeliegenden Straßendaten stammen von OpenStreetMap-Mitwirkenden (Lizenz ODbL). Attribution und ein Link zur Fehlermeldung ("Kartenfehler melden") werden gemäß den Nutzungsbedingungen des Betreibers direkt in der Navigations-Karte angezeigt.</li>
   </ul>
@@ -89,5 +92,23 @@
   </ul>
   <p class="small">App-Icon: eigens erstellt.</p>
 </div>
+<script>
+  (function () {
+    var btn = document.getElementById("map-consent-reset-btn");
+    var status = document.getElementById("map-consent-reset-status");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      try {
+        var hadConsent = localStorage.getItem("wk_map_consent") !== null;
+        localStorage.removeItem("wk_map_consent");
+        status.textContent = hadConsent
+          ? "Erledigt: Deine bisherige Wahl wurde gelöscht. Beim nächsten Öffnen einer Karte wirst du erneut gefragt."
+          : "Es war noch keine Wahl gespeichert.";
+      } catch (e) {
+        status.textContent = "Zurücksetzen war nicht möglich (Browser-Speicher nicht verfügbar).";
+      }
+    });
+  })();
+</script>
 </body>
 </html>

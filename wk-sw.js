@@ -1,4 +1,4 @@
-const WK_CACHE = "walkwahr-v52-2";
+const WK_CACHE = "walkwahr-v52-3";
 const WK_FILES = [
   "wk-index.html",
   "wk-style.css",
